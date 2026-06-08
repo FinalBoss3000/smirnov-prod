@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
+// Paste your Google Apps Script deployment URL here after deploying ContactFormScript.gs
+const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [sending, setSending] = useState(false);
@@ -14,29 +17,24 @@ export default function ContactSection() {
     e.preventDefault();
     setSending(true);
     try {
-      const res = await fetch('https://formsubmit.co/ajax/contactspve@gmail.com', {
+      // no-cors is required for Apps Script — the email is sent but the response
+      // body is opaque (browser restriction with Google's servers)
+      await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        mode: 'no-cors',
         body: JSON.stringify({
           name: form.name,
           email: form.email,
-          phone: form.phone || 'N/A',
+          phone: form.phone || 'Not provided',
           message: form.message,
-          _subject: `New project inquiry from ${form.name}`,
-          _captcha: 'false',
         }),
       });
-      const data = await res.json();
-      if (data.success === 'true' || data.success === true) {
-        setSent(true);
-        toast.success("Message sent! I'll get back to you soon.");
-        setTimeout(() => {
-          setSent(false);
-          setForm({ name: '', email: '', phone: '', message: '' });
-        }, 3000);
-      } else {
-        throw new Error('Submission failed');
-      }
+      setSent(true);
+      toast.success("Message sent! I'll get back to you soon.");
+      setTimeout(() => {
+        setSent(false);
+        setForm({ name: '', email: '', phone: '', message: '' });
+      }, 3000);
     } catch (err) {
       toast.error("Failed to send message. Please try again.");
     } finally {
