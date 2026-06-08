@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 // Paste your Google Apps Script deployment URL here after deploying ContactFormScript.gs
-const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRFVPerb5MUWeQzJiNVSb2RcFjoeWujsW7UeZ0X48ZbLy-KaVFo9gaH2P_xZIgBt2_bA/exec';
 
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
