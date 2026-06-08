@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRFVPerb5MUWeQzJiNVSb2RcFjoeWujsW7UeZ0X48ZbLy-KaVFo9gaH2P_xZIgBt2_bA/exec';
+
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [sending, setSending] = useState(false);
@@ -14,17 +16,13 @@ export default function ContactSection() {
     e.preventDefault();
     setSending(true);
     try {
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'form-name': 'contact',
-          name: form.name,
-          email: form.email,
-          phone: form.phone || 'Not provided',
-          message: form.message,
-        }).toString(),
+      const params = new URLSearchParams({
+        name: form.name,
+        email: form.email,
+        phone: form.phone || 'Not provided',
+        message: form.message,
       });
+      await fetch(`${SCRIPT_URL}?${params.toString()}`, { mode: 'no-cors' });
       setSent(true);
       toast.success("Message sent! I'll get back to you soon.");
       setTimeout(() => {
