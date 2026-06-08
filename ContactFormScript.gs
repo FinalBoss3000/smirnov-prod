@@ -1,15 +1,13 @@
 // Google Apps Script — Contact Form Handler
 // Deploy as: Web App → Execute as: Me → Who has access: Anyone
-// Then paste the deployment URL into ContactSection.jsx
+// IMPORTANT: Run this function once manually in the editor first to grant MailApp permissions.
 
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
-
-    var name    = data.name    || 'N/A';
-    var email   = data.email   || 'N/A';
-    var phone   = data.phone   || 'Not provided';
-    var message = data.message || 'N/A';
+    var name    = e.parameter.name    || 'N/A';
+    var email   = e.parameter.email   || 'N/A';
+    var phone   = e.parameter.phone   || 'Not provided';
+    var message = e.parameter.message || 'N/A';
 
     MailApp.sendEmail({
       to: 'contactspve@gmail.com',
@@ -39,4 +37,13 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Run this manually once in the editor to pre-authorize MailApp before any form is submitted
+function testEmail() {
+  MailApp.sendEmail({
+    to: 'contactspve@gmail.com',
+    subject: 'Test — Apps Script contact form is working',
+    body: 'If you received this, the script is authorized and ready to go.'
+  });
 }

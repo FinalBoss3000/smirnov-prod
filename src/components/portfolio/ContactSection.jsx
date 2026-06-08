@@ -17,17 +17,18 @@ export default function ContactSection() {
     e.preventDefault();
     setSending(true);
     try {
-      // no-cors is required for Apps Script — the email is sent but the response
-      // body is opaque (browser restriction with Google's servers)
+      // URL-encoded form data is the most reliable format for Apps Script + no-cors
+      const params = new URLSearchParams({
+        name: form.name,
+        email: form.email,
+        phone: form.phone || 'Not provided',
+        message: form.message,
+      });
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          phone: form.phone || 'Not provided',
-          message: form.message,
-        }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
       });
       setSent(true);
       toast.success("Message sent! I'll get back to you soon.");
