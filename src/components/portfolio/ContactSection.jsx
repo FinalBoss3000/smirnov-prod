@@ -4,11 +4,6 @@ import { Send, CheckCircle } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import emailjs from '@emailjs/browser';
-
-const EMAILJS_SERVICE_ID = 'service_r5g9g8h';
-const EMAILJS_TEMPLATE_ID = 'template_v6b1lgh';
-const EMAILJS_PUBLIC_KEY = 'Pje-G7ff35EnIwKVr';
 
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
@@ -19,24 +14,29 @@ export default function ContactSection() {
     e.preventDefault();
     setSending(true);
     try {
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        {
-          from_name: form.name,
-          from_email: form.email,
+      const res = await fetch('https://formsubmit.co/ajax/contactspve@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
           phone: form.phone || 'N/A',
           message: form.message,
-          to_email: 'contactspve@gmail.com',
-        },
-        EMAILJS_PUBLIC_KEY
-      );
-      setSent(true);
-      toast.success("Message sent! I'll get back to you soon.");
-      setTimeout(() => {
-        setSent(false);
-        setForm({ name: '', email: '', phone: '', message: '' });
-      }, 3000);
+          _subject: `New project inquiry from ${form.name}`,
+          _captcha: 'false',
+        }),
+      });
+      const data = await res.json();
+      if (data.success === 'true' || data.success === true) {
+        setSent(true);
+        toast.success("Message sent! I'll get back to you soon.");
+        setTimeout(() => {
+          setSent(false);
+          setForm({ name: '', email: '', phone: '', message: '' });
+        }, 3000);
+      } else {
+        throw new Error('Submission failed');
+      }
     } catch (err) {
       toast.error("Failed to send message. Please try again.");
     } finally {
