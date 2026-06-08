@@ -9,7 +9,7 @@ const faqs = [
   },
   {
     q: "How much does it cost?",
-    a: "Pricing is tailored to your project. Short-form edits start from $80. Full commercial productions and music videos are quoted individually. Message me with a brief and I'll give you a clear number with no surprises.",
+    a: "Pricing is tailored to your project. Message me with a brief and I'll give you a clear number with no surprises.",
   },
   {
     q: "How many revisions do I get?",
