@@ -6,6 +6,8 @@ const LOGO_URL = "https://media.base44.com/images/public/69b2c6356fea6110797bb26
 const navLinks = [
   { label: "Work", href: "#work" },
   { label: "Services", href: "#services" },
+  { label: "Process", href: "#process" },
+  { label: "Reviews", href: "#reviews" },
 ];
 
 export default function Navbar() {
