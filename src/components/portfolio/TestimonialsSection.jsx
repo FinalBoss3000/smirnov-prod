@@ -71,7 +71,7 @@ export default function TestimonialsSection() {
 
               <div className="mt-8 text-center">
                 <p className="text-white font-semibold">{testimonials[active].name}</p>
-                <p className="text-white/30 text-sm mt-1">{testimonials[active].role}</p>
+                <p className="text-white/55 text-sm mt-1">{testimonials[active].role}</p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -79,23 +79,32 @@ export default function TestimonialsSection() {
           <div className="flex items-center justify-center gap-6 mt-8">
             <button
               onClick={prev}
+              aria-label="Previous testimonial"
               className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/50 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-300"
             >
               <ChevronLeft size={18} />
             </button>
 
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               {testimonials.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActive(i)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${i === active ? 'bg-emerald-400 w-6' : 'bg-white/20'}`}
-                />
+                  aria-label={`Show testimonial ${i + 1} of ${testimonials.length}`}
+                  aria-current={i === active ? 'true' : undefined}
+                  className="w-8 h-8 flex items-center justify-center"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`block rounded-full transition-all duration-300 h-2 ${i === active ? 'bg-emerald-400 w-6' : 'bg-white/20 w-2'}`}
+                  />
+                </button>
               ))}
             </div>
 
             <button
               onClick={next}
+              aria-label="Next testimonial"
               className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/50 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-300"
             >
               <ChevronRight size={18} />

@@ -12,7 +12,7 @@ export default function Footer() {
             <span className="text-white/50 text-sm tracking-wider">SMIRNOV PROD.</span>
           </div>
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            <p className="text-white/20 text-sm">
+            <p className="text-white/50 text-sm">
               © {new Date().getFullYear()} Smirnov Prod. All rights reserved.
             </p>
             <span className="text-white/10 text-sm hidden md:block">·</span>
