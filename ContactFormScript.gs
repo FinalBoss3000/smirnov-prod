@@ -1,8 +1,14 @@
 // Google Apps Script — Contact Form Handler
-// Deploy as: Web App → Execute as: Me → Who has access: Anyone
-// IMPORTANT: Run this function once manually in the editor first to grant MailApp permissions.
+// Uses doGet (not doPost) — GET requests don't get their params dropped on redirect.
+//
+// HOW TO DEPLOY:
+// 1. Paste this code into script.google.com
+// 2. Run testEmail() once manually → click Allow in the permissions dialog
+// 3. Deploy → New deployment → Web app
+//    Execute as: Me  |  Who has access: Anyone
+// 4. Copy the /exec URL into ContactSection.jsx as SCRIPT_URL
 
-function doPost(e) {
+function doGet(e) {
   try {
     var name    = e.parameter.name    || 'N/A';
     var email   = e.parameter.email   || 'N/A';
@@ -39,7 +45,7 @@ function doPost(e) {
   }
 }
 
-// Run this manually once in the editor to pre-authorize MailApp before any form is submitted
+// Run this manually first to authorize MailApp — required before the form will work
 function testEmail() {
   MailApp.sendEmail({
     to: 'contactspve@gmail.com',

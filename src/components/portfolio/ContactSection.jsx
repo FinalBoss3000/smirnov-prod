@@ -17,19 +17,14 @@ export default function ContactSection() {
     e.preventDefault();
     setSending(true);
     try {
-      // URL-encoded form data is the most reliable format for Apps Script + no-cors
+      // GET request — Apps Script drops POST bodies on redirect, GET params survive
       const params = new URLSearchParams({
         name: form.name,
         email: form.email,
         phone: form.phone || 'Not provided',
         message: form.message,
       });
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
-      });
+      await fetch(`${SCRIPT_URL}?${params.toString()}`, { mode: 'no-cors' });
       setSent(true);
       toast.success("Message sent! I'll get back to you soon.");
       setTimeout(() => {
