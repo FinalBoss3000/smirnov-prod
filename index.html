@@ -6,9 +6,756 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smirnov Prod. — Cinematic Video Editing</title>
     <meta name="description" content="Cinematic Video Editing · Motion Graphics · Visual Storytelling" />
+    <style>
+      /* ============================================================
+         COMPLIANCE LAYER — Cookie Consent + Accessibility Widget
+         All z-index hierarchy:
+           Reading mask 800 | Reading guide 801 | Cookie bar 900
+           A11y widget 1000 | A11y overlay 1001 | A11y panel 1002
+           Legal modal 2000
+      ============================================================ */
+
+      /* ---- Cookie Banner ---- */
+      #cookie-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 900;
+        background: #1c1c1e;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+        font-family: system-ui,-apple-system,sans-serif;
+      }
+      #cookie-bar.show { transform: translateY(0); }
+      .ck-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .ck-text {
+        flex: 1;
+        min-width: 200px;
+        font-size: 13px;
+        line-height: 1.55;
+        color: #a0a0a8;
+        margin: 0;
+      }
+      .ck-learn {
+        background: none;
+        border: none;
+        color: #4ade80;
+        font-size: 13px;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: underline;
+        font-family: inherit;
+      }
+      .ck-learn:hover { color: #86efac; }
+      .ck-actions { display: flex; gap: 8px; flex-shrink: 0; }
+      .ck-btn {
+        padding: 8px 18px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .ck-decline {
+        background: transparent;
+        border-color: rgba(255,255,255,0.18);
+        color: #888;
+      }
+      .ck-decline:hover { border-color: rgba(255,255,255,0.35); color: #bbb; }
+      .ck-accept { background: #3A8F4F; color: #fff; border-color: #3A8F4F; }
+      .ck-accept:hover { background: #2d7040; }
+      [dir="rtl"] .ck-inner { flex-direction: row-reverse; }
+
+      /* ---- Accessibility Widget ---- */
+      #a11y-widget {
+        position: fixed;
+        bottom: 32px;
+        left: 24px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        transition: bottom 0.4s cubic-bezier(0.16,1,0.3,1);
+      }
+      body:has(#cookie-bar.show) #a11y-widget {
+        bottom: calc(32px + var(--cookie-bar-h, 72px));
+      }
+      #a11y-btn {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: #3A8F4F;
+        border: 2.5px solid #fff;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, background 0.2s;
+        padding: 0;
+      }
+      #a11y-btn:hover { transform: scale(1.08); background: #2d7040; }
+      #a11y-btn:focus-visible { outline: 3px solid #4ade80; outline-offset: 3px; }
+      .a11y-lbl {
+        font-family: system-ui,-apple-system,sans-serif;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #fff;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+        user-select: none;
+      }
+      [dir="rtl"] #a11y-widget { left: auto; right: 24px; }
+
+      /* ---- A11y Overlay ---- */
+      #a11y-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.52);
+        z-index: 1001;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #a11y-overlay.vis { opacity: 1; pointer-events: all; }
+
+      /* ---- A11y Panel ---- */
+      #a11y-panel {
+        position: fixed;
+        top: 0;
+        left: -400px;
+        width: 380px;
+        height: 100%;
+        z-index: 1002;
+        background: #fff;
+        box-shadow: 4px 0 32px rgba(0,0,0,0.28);
+        display: flex;
+        flex-direction: column;
+        transition: left 0.3s cubic-bezier(0.16,1,0.3,1);
+        font-family: system-ui,-apple-system,sans-serif;
+      }
+      #a11y-panel.open { left: 0; }
+      [dir="rtl"] #a11y-panel { left: auto; right: -400px; transition-property: right; }
+      [dir="rtl"] #a11y-panel.open { right: 0; }
+
+      .ap-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+        flex-shrink: 0;
+      }
+      .ap-header h2 { font-size: 15px; font-weight: 700; color: #111827; margin: 0; }
+      #a11y-close {
+        width: 32px; height: 32px;
+        border: none; background: #f3f4f6; border-radius: 50%;
+        cursor: pointer; font-size: 17px; color: #374151;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s; padding: 0; line-height: 1;
+      }
+      #a11y-close:hover { background: #e5e7eb; }
+      .ap-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+      .ap-sec-title {
+        font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+        text-transform: uppercase; color: #9ca3af;
+        margin: 16px 0 8px; padding-bottom: 6px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .ap-sec-title:first-child { margin-top: 0; }
+      .ap-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+      .ap-tile {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 6px; padding: 11px 6px;
+        border-radius: 10px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.18s, background 0.18s, color 0.18s;
+        text-align: center;
+        font-size: 10.5px; font-weight: 500; color: #374151;
+        min-height: 76px; line-height: 1.3;
+        font-family: inherit;
+      }
+      .ap-tile svg { width: 22px; height: 22px; flex-shrink: 0; transition: stroke 0.18s, fill 0.18s; }
+      .ap-tile:hover { border-color: #3A8F4F; background: #f0fdf4; }
+      .ap-tile[aria-pressed="true"] { background: #1e3a5f; border-color: #1e3a5f; color: #fff; }
+      .ap-tile[aria-pressed="true"] svg { stroke: #fff !important; }
+      .ap-footer {
+        padding: 14px 18px;
+        border-top: 1px solid #e5e7eb;
+        background: #f9fafb;
+        flex-shrink: 0;
+      }
+      #a11y-reset {
+        width: 100%; padding: 10px;
+        background: #1f2937; color: #fff;
+        border: none; border-radius: 8px;
+        font-size: 13px; font-weight: 600;
+        cursor: pointer; font-family: inherit;
+        transition: background 0.2s; margin-bottom: 11px;
+      }
+      #a11y-reset:hover { background: #374151; }
+      .ap-flinks { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+      .ap-flinks a, .ap-flinks button {
+        font-size: 11.5px; color: #6b7280;
+        text-decoration: underline; cursor: pointer;
+        background: none; border: none;
+        font-family: inherit; padding: 0;
+      }
+      .ap-flinks a:hover, .ap-flinks button:hover { color: #3A8F4F; }
+
+      /* ---- Legal Modal ---- */
+      #legal-modal {
+        position: fixed; inset: 0; z-index: 2000;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.22s;
+        font-family: system-ui,-apple-system,sans-serif;
+      }
+      #legal-modal.open { opacity: 1; pointer-events: all; }
+      .lm-backdrop {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.62);
+        backdrop-filter: blur(5px);
+      }
+      .lm-card {
+        position: relative; background: #fff; border-radius: 16px;
+        width: 100%; max-width: 620px; max-height: 82vh;
+        overflow-y: auto; padding: 32px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.38);
+        transform: scale(0.93);
+        transition: transform 0.22s;
+      }
+      #legal-modal.open .lm-card { transform: scale(1); }
+      .lm-close {
+        position: absolute; top: 16px; right: 16px;
+        width: 32px; height: 32px;
+        border: none; background: #f3f4f6; border-radius: 50%;
+        cursor: pointer; font-size: 17px; color: #374151;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s; padding: 0; line-height: 1;
+      }
+      .lm-close:hover { background: #e5e7eb; }
+      #legal-title { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 20px; padding-right: 40px; }
+      #legal-content { font-size: 14px; color: #374151; line-height: 1.72; }
+      #legal-content h3 { font-size: 14px; font-weight: 700; color: #111827; margin: 18px 0 6px; }
+      #legal-content h3:first-child { margin-top: 0; }
+      #legal-content p { margin: 0 0 10px; }
+      #legal-content ul { margin: 0 0 10px; padding-left: 18px; }
+      #legal-content li { margin-bottom: 4px; }
+      #legal-content a { color: #3A8F4F; }
+
+      /* ---- Reading Guide ---- */
+      #reading-guide {
+        position: fixed; left: 0; right: 0; height: 3px;
+        background: rgba(255,215,0,0.9);
+        box-shadow: 0 0 10px rgba(255,215,0,0.55);
+        z-index: 801; pointer-events: none;
+        display: none; top: 0;
+      }
+      html.a11y-reading-guide #reading-guide { display: block; }
+
+      /* ---- Reading Mask ---- */
+      #reading-mask-top, #reading-mask-bottom {
+        position: fixed; left: 0; right: 0;
+        background: rgba(0,0,0,0.78);
+        z-index: 800; pointer-events: none; display: none;
+      }
+      #reading-mask-top { top: 0; }
+      #reading-mask-bottom { bottom: 0; }
+      html.a11y-reading-mask #reading-mask-top,
+      html.a11y-reading-mask #reading-mask-bottom { display: block; }
+
+      /* ---- Feature CSS Classes ---- */
+
+      /* Big Cursor */
+      html.a11y-big-cursor, html.a11y-big-cursor * {
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'%3E%3Cpath d='M5 3l14 9-7 1-4 7z' fill='%23000' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 0 0, auto !important;
+      }
+
+      /* Text Magnifier */
+      html.a11y-magnify { zoom: 1.25; }
+
+      /* Focus Highlight */
+      html.a11y-focus-highlight *:focus {
+        outline: 3px solid #3A8F4F !important;
+        outline-offset: 3px !important;
+      }
+
+      /* Highlight Links */
+      html.a11y-highlight-links a {
+        outline: 2px solid #ffd600 !important;
+        text-decoration: underline !important;
+        outline-offset: 2px !important;
+      }
+
+      /* Keyboard Mode */
+      html.a11y-keyboard-mode *:focus-visible {
+        outline: 3px solid #0066cc !important;
+        outline-offset: 3px !important;
+        box-shadow: 0 0 0 6px rgba(0,102,204,0.22) !important;
+      }
+
+      /* High Contrast */
+      html.a11y-high-contrast { filter: contrast(160%) brightness(1.05); }
+
+      /* Greyscale */
+      html.a11y-greyscale { filter: grayscale(100%); }
+
+      /* Invert Colors */
+      html.a11y-invert { filter: invert(88%) hue-rotate(180deg); }
+
+      /* Hide Images */
+      html.a11y-hide-images img { visibility: hidden !important; }
+
+      /* Larger Text */
+      html.a11y-larger-text { zoom: 1.2; }
+
+      /* Dyslexic Font */
+      html.a11y-dyslexic * {
+        font-family: Arial, sans-serif !important;
+        letter-spacing: 0.1em !important;
+        line-height: 1.85 !important;
+      }
+
+      /* Letter Spacing */
+      html.a11y-letter-spacing * { letter-spacing: 0.14em !important; }
+
+      /* Stop Animations */
+      html.a11y-stop-animations *,
+      html.a11y-stop-animations *::before,
+      html.a11y-stop-animations *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+
+      /* Hide Video */
+      html.a11y-hide-video video { visibility: hidden !important; }
+
+      /* ---- Footer Legal Buttons ---- */
+      .footer-legal-btn {
+        background: none; border: none; cursor: pointer;
+        font-size: 12px; color: rgba(255,255,255,0.25);
+        text-decoration: underline; font-family: inherit;
+        padding: 0; transition: color 0.2s;
+      }
+      .footer-legal-btn:hover { color: #4ade80; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- ===== COOKIE BANNER ===== -->
+    <div id="cookie-bar" role="region" aria-label="Cookie consent">
+      <div class="ck-inner">
+        <p class="ck-text">
+          This site saves your language preference in your browser and loads fonts via Google Fonts. No tracking or analytics cookies are used.
+          <button class="ck-learn" onclick="openLegal('cookies')">Learn more</button>
+        </p>
+        <div class="ck-actions">
+          <button class="ck-btn ck-decline" id="ck-decline">Decline</button>
+          <button class="ck-btn ck-accept" id="ck-accept">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ACCESSIBILITY WIDGET ===== -->
+    <div id="a11y-widget">
+      <button id="a11y-btn" aria-expanded="false" aria-controls="a11y-panel" title="Accessibility Options">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="4.5" r="2" fill="white" stroke="none"/>
+          <line x1="5.5" y1="10" x2="18.5" y2="10"/>
+          <line x1="12" y1="7" x2="12" y2="16"/>
+          <line x1="12" y1="16" x2="7.5" y2="21"/>
+          <line x1="12" y1="16" x2="16.5" y2="21"/>
+        </svg>
+      </button>
+      <span class="a11y-lbl" aria-hidden="true">ACCESSIBILITY</span>
+    </div>
+
+    <!-- ===== A11Y OVERLAY ===== -->
+    <div id="a11y-overlay" aria-hidden="true"></div>
+
+    <!-- ===== ACCESSIBILITY PANEL ===== -->
+    <div id="a11y-panel" aria-hidden="true">
+      <div class="ap-header">
+        <h2>Accessibility Options</h2>
+        <button id="a11y-close" aria-label="Close panel">&#x2715;</button>
+      </div>
+      <div class="ap-body" id="ap-body"></div>
+      <div class="ap-footer">
+        <button id="a11y-reset">Reset Settings</button>
+        <div class="ap-flinks">
+          <button onclick="openLegal('accessibility')">Accessibility Statement</button>
+          <a href="mailto:contactspve@gmail.com">Report a Problem</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LEGAL MODAL ===== -->
+    <div id="legal-modal" role="dialog" aria-hidden="true" aria-labelledby="legal-title">
+      <div class="lm-backdrop" id="lm-backdrop"></div>
+      <div class="lm-card">
+        <button class="lm-close" id="lm-close" aria-label="Close">&#x2715;</button>
+        <h2 id="legal-title"></h2>
+        <div id="legal-content"></div>
+      </div>
+    </div>
+
+    <!-- ===== READING GUIDE + MASK ===== -->
+    <div id="reading-guide" aria-hidden="true"></div>
+    <div id="reading-mask-top" aria-hidden="true"></div>
+    <div id="reading-mask-bottom" aria-hidden="true"></div>
+
+    <script>
+    (function () {
+      'use strict';
+
+      /* =====================================================
+         COOKIE BANNER
+      ===================================================== */
+      var cookieBar = document.getElementById('cookie-bar');
+
+      if (!localStorage.getItem('cookie-consent')) {
+        setTimeout(function () {
+          cookieBar.classList.add('show');
+          var h = cookieBar.getBoundingClientRect().height;
+          document.documentElement.style.setProperty('--cookie-bar-h', h + 'px');
+        }, 900);
+      }
+
+      function dismissCookie(val) {
+        localStorage.setItem('cookie-consent', val);
+        cookieBar.classList.remove('show');
+        document.documentElement.style.removeProperty('--cookie-bar-h');
+      }
+
+      document.getElementById('ck-accept').addEventListener('click', function () { dismissCookie('accepted'); });
+      document.getElementById('ck-decline').addEventListener('click', function () { dismissCookie('declined'); });
+
+      /* =====================================================
+         ACCESSIBILITY FEATURES DEFINITION
+      ===================================================== */
+      var FEATURES = [
+        // ── Navigation & Focus ──
+        {
+          id: 'big-cursor', label: 'Big Cursor',
+          section: 'Navigation & Focus', cls: 'a11y-big-cursor',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-7 1-4 7z"/></svg>'
+        },
+        {
+          id: 'text-magnifier', label: 'Text Magnifier',
+          section: 'Navigation & Focus', cls: 'a11y-magnify',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>'
+        },
+        {
+          id: 'focus-highlight', label: 'Focus Highlight',
+          section: 'Navigation & Focus', cls: 'a11y-focus-highlight',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'
+        },
+        {
+          id: 'highlight-links', label: 'Highlight Links',
+          section: 'Navigation & Focus', cls: 'a11y-highlight-links',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+        },
+        {
+          id: 'keyboard-mode', label: 'Keyboard Mode',
+          section: 'Navigation & Focus', cls: 'a11y-keyboard-mode',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="10" x2="6.01" y2="10" stroke-width="3"/><line x1="10" y1="10" x2="10.01" y2="10" stroke-width="3"/><line x1="14" y1="10" x2="14.01" y2="10" stroke-width="3"/><line x1="18" y1="10" x2="18.01" y2="10" stroke-width="3"/><line x1="8" y1="14" x2="16" y2="14"/></svg>'
+        },
+        {
+          id: 'skip-content', label: 'Skip to Content',
+          section: 'Navigation & Focus', cls: null, action: 'skip',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="16" y2="12"/><polyline points="11 7 16 12 11 17"/><line x1="19" y1="7" x2="19" y2="17"/></svg>'
+        },
+        // ── Visual Adjustments ──
+        {
+          id: 'high-contrast', label: 'High Contrast',
+          section: 'Visual Adjustments', cls: 'a11y-high-contrast', group: 'filter',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21" stroke-width="1.5"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>'
+        },
+        {
+          id: 'greyscale', label: 'Greyscale',
+          section: 'Visual Adjustments', cls: 'a11y-greyscale', group: 'filter',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" opacity="0.45"/></svg>'
+        },
+        {
+          id: 'invert-colors', label: 'Invert Colors',
+          section: 'Visual Adjustments', cls: 'a11y-invert', group: 'filter',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21" opacity="0.4"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" opacity="0.65"/></svg>'
+        },
+        {
+          id: 'hide-images', label: 'Hide Images',
+          section: 'Visual Adjustments', cls: 'a11y-hide-images',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="2" y1="2" x2="22" y2="22"/></svg>'
+        },
+        {
+          id: 'reading-guide', label: 'Reading Guide',
+          section: 'Visual Adjustments', cls: 'a11y-reading-guide',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12" stroke-width="3.5"/><line x1="3" y1="6" x2="21" y2="6" opacity="0.3"/><line x1="3" y1="18" x2="21" y2="18" opacity="0.3"/></svg>'
+        },
+        {
+          id: 'reading-mask', label: 'Reading Mask',
+          section: 'Visual Adjustments', cls: 'a11y-reading-mask',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="7" rx="1" fill="currentColor" opacity="0.38" stroke="none"/><rect x="2" y="15" width="20" height="7" rx="1" fill="currentColor" opacity="0.38" stroke="none"/><line x1="2" y1="10" x2="22" y2="10" stroke-linecap="round" opacity="0.6"/><line x1="2" y1="14" x2="22" y2="14" stroke-linecap="round" opacity="0.6"/></svg>'
+        },
+        // ── Text & Motion ──
+        {
+          id: 'larger-text', label: 'Larger Text',
+          section: 'Text & Motion', cls: 'a11y-larger-text',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>'
+        },
+        {
+          id: 'dyslexic-font', label: 'Dyslexic Font',
+          section: 'Text & Motion', cls: 'a11y-dyslexic',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L12 4 L20 20"/><line x1="6.5" y1="14" x2="17.5" y2="14"/></svg>'
+        },
+        {
+          id: 'letter-spacing', label: 'Letter Spacing',
+          section: 'Text & Motion', cls: 'a11y-letter-spacing',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="4" x2="3" y2="20"/><line x1="21" y1="4" x2="21" y2="20"/><line x1="3" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="21" y2="12"/><line x1="10" y1="8" x2="14" y2="8"/><line x1="10" y1="8" x2="14" y2="16"/><line x1="10" y1="16" x2="14" y2="16"/></svg>'
+        },
+        {
+          id: 'stop-animations', label: 'Stop Animations',
+          section: 'Text & Motion', cls: 'a11y-stop-animations',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+        },
+        {
+          id: 'mute-sound', label: 'Mute Sound',
+          section: 'Text & Motion', cls: null, action: 'mute',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
+        },
+        {
+          id: 'hide-video', label: 'Hide Video',
+          section: 'Text & Motion', cls: 'a11y-hide-video',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h8"/><path d="m22 8-6 4 6 4V8z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>'
+        }
+      ];
+
+      var SECTIONS = ['Navigation & Focus', 'Visual Adjustments', 'Text & Motion'];
+      var FILTER_IDS = ['high-contrast', 'greyscale', 'invert-colors'];
+
+      /* ── Load saved prefs ── */
+      var prefs = {};
+      try { prefs = JSON.parse(localStorage.getItem('a11y-prefs') || '{}'); } catch (e) {}
+      var muteActive = false;
+      var muteObserver = null;
+
+      function savePrefs() { localStorage.setItem('a11y-prefs', JSON.stringify(prefs)); }
+
+      /* ── Apply on page load ── */
+      FEATURES.forEach(function (f) {
+        if (f.cls && prefs[f.id]) document.documentElement.classList.add(f.cls);
+      });
+      if (prefs['mute-sound']) {
+        muteActive = true;
+        muteAllMedia(true);
+        startMuteObserver();
+      }
+
+      /* ── Build panel HTML ── */
+      function buildPanel() {
+        var html = '';
+        SECTIONS.forEach(function (sec) {
+          html += '<p class="ap-sec-title">' + sec + '</p><div class="ap-grid">';
+          FEATURES.filter(function (f) { return f.section === sec; }).forEach(function (f) {
+            var on = (prefs[f.id] && f.cls) || (f.action === 'mute' && prefs['mute-sound']) ? 'true' : 'false';
+            html += '<button class="ap-tile" id="tile-' + f.id + '" data-id="' + f.id + '" aria-pressed="' + on + '">'
+              + f.icon + '<span>' + f.label + '</span></button>';
+          });
+          html += '</div>';
+        });
+        document.getElementById('ap-body').innerHTML = html;
+        document.getElementById('ap-body').querySelectorAll('.ap-tile').forEach(function (t) {
+          t.addEventListener('click', function () { toggleFeature(this.dataset.id); });
+        });
+      }
+      buildPanel();
+
+      /* ── Toggle a feature ── */
+      function toggleFeature(id) {
+        var f = FEATURES.find(function (x) { return x.id === id; });
+        if (!f) return;
+        var tile = document.getElementById('tile-' + id);
+        var on = tile.getAttribute('aria-pressed') === 'true';
+
+        if (f.action === 'skip') {
+          var el = document.getElementById('main') || document.querySelector('main') || document.getElementById('root');
+          if (el) { el.setAttribute('tabindex', '-1'); el.focus(); }
+          tile.setAttribute('aria-pressed', 'true');
+          setTimeout(function () { tile.setAttribute('aria-pressed', 'false'); }, 700);
+          return;
+        }
+
+        if (f.action === 'mute') {
+          muteActive = !on;
+          prefs['mute-sound'] = muteActive;
+          savePrefs();
+          tile.setAttribute('aria-pressed', muteActive ? 'true' : 'false');
+          muteAllMedia(muteActive);
+          muteActive ? startMuteObserver() : stopMuteObserver();
+          return;
+        }
+
+        /* Mutually exclusive filter group */
+        if (f.group === 'filter' && !on) {
+          FILTER_IDS.forEach(function (fid) {
+            var f2 = FEATURES.find(function (x) { return x.id === fid; });
+            if (f2 && f2.cls) {
+              document.documentElement.classList.remove(f2.cls);
+              prefs[fid] = false;
+              var t2 = document.getElementById('tile-' + fid);
+              if (t2) t2.setAttribute('aria-pressed', 'false');
+            }
+          });
+        }
+
+        var next = !on;
+        if (f.cls) {
+          next ? document.documentElement.classList.add(f.cls)
+               : document.documentElement.classList.remove(f.cls);
+        }
+        prefs[id] = next;
+        savePrefs();
+        tile.setAttribute('aria-pressed', next ? 'true' : 'false');
+      }
+
+      /* ── Mute helpers ── */
+      function muteAllMedia(m) {
+        document.querySelectorAll('audio, video').forEach(function (el) { el.muted = m; });
+      }
+      function startMuteObserver() {
+        if (muteObserver) return;
+        muteObserver = new MutationObserver(function (muts) {
+          muts.forEach(function (m) {
+            m.addedNodes.forEach(function (n) {
+              if (n.nodeType !== 1) return;
+              if (n.tagName === 'AUDIO' || n.tagName === 'VIDEO') n.muted = true;
+              if (n.querySelectorAll) n.querySelectorAll('audio,video').forEach(function (e) { e.muted = true; });
+            });
+          });
+        });
+        muteObserver.observe(document.body, { childList: true, subtree: true });
+      }
+      function stopMuteObserver() {
+        if (muteObserver) { muteObserver.disconnect(); muteObserver = null; }
+      }
+
+      /* ── Panel open / close ── */
+      var panel   = document.getElementById('a11y-panel');
+      var overlay = document.getElementById('a11y-overlay');
+      var btn     = document.getElementById('a11y-btn');
+
+      function openPanel() {
+        panel.classList.add('open');
+        overlay.classList.add('vis');
+        panel.setAttribute('aria-hidden', 'false');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+      function closePanel() {
+        panel.classList.remove('open');
+        overlay.classList.remove('vis');
+        panel.setAttribute('aria-hidden', 'true');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+
+      btn.addEventListener('click', function () { panel.classList.contains('open') ? closePanel() : openPanel(); });
+      document.getElementById('a11y-close').addEventListener('click', closePanel);
+      overlay.addEventListener('click', closePanel);
+
+      document.getElementById('a11y-reset').addEventListener('click', function () {
+        FEATURES.forEach(function (f) {
+          if (f.cls) document.documentElement.classList.remove(f.cls);
+          prefs[f.id] = false;
+          var t = document.getElementById('tile-' + f.id);
+          if (t) t.setAttribute('aria-pressed', 'false');
+        });
+        muteActive = false;
+        muteAllMedia(false);
+        stopMuteObserver();
+        prefs = {};
+        savePrefs();
+      });
+
+      /* ── Reading guide & mask ── */
+      var rGuide  = document.getElementById('reading-guide');
+      var rMaskT  = document.getElementById('reading-mask-top');
+      var rMaskB  = document.getElementById('reading-mask-bottom');
+      var GAP = 42;
+
+      document.addEventListener('mousemove', function (e) {
+        var y = e.clientY;
+        var h = document.documentElement;
+        if (h.classList.contains('a11y-reading-guide')) {
+          rGuide.style.top = (y - 1.5) + 'px';
+        }
+        if (h.classList.contains('a11y-reading-mask')) {
+          rMaskT.style.height = Math.max(0, y - GAP) + 'px';
+          rMaskB.style.top = (y + GAP) + 'px';
+        }
+      });
+
+      /* ── Escape key ── */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var modal = document.getElementById('legal-modal');
+        if (modal.classList.contains('open')) { closeLegal(); return; }
+        if (panel.classList.contains('open')) closePanel();
+      });
+
+      /* =====================================================
+         LEGAL MODAL
+      ===================================================== */
+      var LEGAL = {
+        accessibility: {
+          title: 'Accessibility Statement',
+          body: '<h3>Our Commitment</h3><p>Smirnov Prod. is committed to ensuring digital accessibility for people with disabilities. We continually improve the user experience for everyone and apply the relevant accessibility standards.</p><h3>Conformance Status</h3><p>We aim to conform to the <strong>Web Content Accessibility Guidelines (WCAG) 2.2, Level AA</strong>.</p><h3>Optimisations in Place</h3><ul><li>Screen reader compatibility (semantic HTML, ARIA labels)</li><li>Full keyboard navigation support</li><li>Sufficient colour contrast ratios</li><li>Resizable text without loss of functionality</li><li>Descriptive alt text on images</li><li>Focus indicators on all interactive elements</li></ul><h3>Accessibility Profiles Available</h3><ul><li><strong>Vision</strong> — High contrast, large text, hide images</li><li><strong>Cognitive</strong> — Stop animations, reading guide &amp; mask</li><li><strong>Dyslexia</strong> — Dyslexic-friendly font, increased letter spacing</li><li><strong>Keyboard Navigation</strong> — Enhanced focus indicators, keyboard mode</li><li><strong>Sensory</strong> — Mute sound, hide video, greyscale</li></ul><h3>UI Customisation Options</h3><p>The accessibility widget (bottom-left corner) offers 18 options across three categories: Navigation &amp; Focus, Visual Adjustments, and Text &amp; Motion. All preferences are saved in your browser and restored on your next visit.</p><h3>Supported Browsers</h3><p>Chrome, Firefox, Safari, Edge, Opera (latest two major versions of each).</p><h3>Supported Screen Readers</h3><p>JAWS, NVDA.</p><h3>Continual Improvement</h3><p>We are actively working to increase the accessibility of this site. If you encounter any barriers, please contact us — we will address the issue promptly.</p><h3>Contact</h3><p>Email: <a href="mailto:contactspve@gmail.com">contactspve@gmail.com</a></p>'
+        },
+        cookies: {
+          title: 'Cookie & Storage Policy',
+          body: '<h3>What We Store</h3><p>This website uses <strong>localStorage</strong> (not cookies). We store the following data locally in your browser:</p><ul><li><strong>Language preference</strong> — to remember your selected language between visits</li><li><strong>Cookie consent choice</strong> — accepted or declined</li><li><strong>Accessibility preferences</strong> — to restore your settings on return visits</li></ul><h3>Google Fonts</h3><p>This site loads fonts via Google Fonts (fonts.googleapis.com). When your browser requests a font, your IP address is transmitted to Google\'s CDN servers as part of the network request. This is a standard technical process; Google may log it according to their own privacy policy.</p><h3>What We Do NOT Use</h3><ul><li>No analytics cookies or scripts (e.g. Google Analytics, Hotjar)</li><li>No advertising or retargeting cookies</li><li>No social media tracking pixels</li><li>No session tracking or cross-site identifiers</li><li>No third-party marketing or data-collection tools</li></ul><h3>How to Clear Your Data</h3><p>To remove all locally stored preferences from your browser:</p><ul><li><strong>Chrome / Edge:</strong> Settings → Privacy &amp; security → Clear browsing data → Cached images and files</li><li><strong>Firefox:</strong> Settings → Privacy &amp; Security → Cookies and Site Data → Clear Data</li><li><strong>Safari:</strong> Preferences → Privacy → Manage Website Data</li></ul><p>Or open DevTools (F12) → Application → Local Storage → select this site → Delete All.</p><h3>Contact</h3><p>Questions? Email: <a href="mailto:contactspve@gmail.com">contactspve@gmail.com</a></p>'
+        }
+      };
+
+      window.openLegal = function (type) {
+        var d = LEGAL[type]; if (!d) return;
+        document.getElementById('legal-title').textContent = d.title;
+        document.getElementById('legal-content').innerHTML = d.body;
+        var m = document.getElementById('legal-modal');
+        m.classList.add('open');
+        m.setAttribute('aria-hidden', 'false');
+      };
+
+      function closeLegal() {
+        var m = document.getElementById('legal-modal');
+        m.classList.remove('open');
+        m.setAttribute('aria-hidden', 'true');
+      }
+
+      document.getElementById('lm-close').addEventListener('click', closeLegal);
+      document.getElementById('lm-backdrop').addEventListener('click', closeLegal);
+
+    })();
+    </script>
   </body>
 </html>
