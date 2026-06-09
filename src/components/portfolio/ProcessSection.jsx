@@ -78,7 +78,7 @@ export default function ProcessSection() {
         >
           <RadialOrbitalTimeline
             timelineData={processData}
-            className="h-[580px]"
+            className="h-[460px] md:h-[580px]"
           />
         </motion.div>
 
