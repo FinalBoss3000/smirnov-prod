@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, Link, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -130,12 +129,6 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
     return item ? item.relatedIds.includes(itemId) : false;
   };
 
-  const getStatusStyles = (status) => {
-    if (status === "completed")   return "text-white bg-emerald-600 border-emerald-500";
-    if (status === "in-progress") return "text-white bg-blue-600 border-blue-500";
-    return "text-white/70 bg-black/40 border-white/30";
-  };
-
   const orbitSize = radius * 2;
 
   return (
@@ -215,13 +208,7 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                   >
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-px h-3 bg-white/40" />
                     <CardHeader className="pb-2 px-4 pt-4">
-                      <div className="flex justify-between items-center gap-2">
-                        <Badge className={`px-2 text-xs border shrink-0 ${getStatusStyles(item.status)}`}>
-                          {item.status === "completed" ? "COMPLETE" : item.status === "in-progress" ? "IN PROGRESS" : "UPCOMING"}
-                        </Badge>
-                        <span className="text-xs font-mono text-white/40 shrink-0">{item.date}</span>
-                      </div>
-                      <CardTitle className="text-sm mt-2 text-white">{item.title}</CardTitle>
+                      <CardTitle className="text-sm text-white">{item.title}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-xs text-white/70 px-4 pb-4">
                       <p>{item.content}</p>
