@@ -6,16 +6,14 @@ const LOGO_URL = "https://media.base44.com/images/public/69b2c6356fea6110797bb26
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/40 via-black to-blue-950/30" />
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} />
-      </div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Thin vignette so edges don't feel too open — shader shows through the middle */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.55)_100%)]" />
+      {/* Subtle grid texture */}
+      <div className="absolute inset-0 opacity-[0.025]" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
+        backgroundSize: '60px 60px'
+      }} />
 
       <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
         <motion.div
