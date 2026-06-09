@@ -5,25 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+const SPEED_DEG_PER_SEC = 18;
+
 export default function RadialOrbitalTimeline({ timelineData, className }) {
+  // Only state that triggers real React re-renders (user interactions only)
   const [expandedItems, setExpandedItems] = useState({});
-  const [rotationAngle, setRotationAngle] = useState(0);
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [pulseEffect, setPulseEffect] = useState({});
   const [activeNodeId, setActiveNodeId] = useState(null);
-  const [radius, setRadius] = useState(180);
+  const [pulseEffect, setPulseEffect] = useState({});
+  const [radius, setRadius] = useState(175);
+
+  // Refs for the animation loop — updating these never causes re-renders
+  const rotationRef  = useRef(0);
+  const autoRotRef   = useRef(true);
+  const expandedRef  = useRef({});
+  const radiusRef    = useRef(175);
+  const rafRef       = useRef(null);
+  const lastTsRef    = useRef(null);
 
   const containerRef = useRef(null);
-  const orbitRef = useRef(null);
-  const nodeRefs = useRef({});
+  const nodeRefs     = useRef({});
 
-  /* ── Responsive radius ── */
+  // Keep expandedRef in sync so the RAF loop can read it without closures
+  useEffect(() => { expandedRef.current = expandedItems; }, [expandedItems]);
+
+  // ── Responsive radius via ResizeObserver ──────────────────────────────────
   useEffect(() => {
     const update = () => {
       if (!containerRef.current) return;
-      const w = containerRef.current.offsetWidth;
-      // leave ~55px per side for the node icon + label
-      setRadius(Math.min(175, Math.floor((w / 2) - 60)));
+      const r = Math.min(175, Math.floor(containerRef.current.offsetWidth / 2 - 60));
+      radiusRef.current = r;
+      setRadius(r);
     };
     update();
     const ro = new ResizeObserver(update);
@@ -31,76 +42,98 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
     return () => ro.disconnect();
   }, []);
 
-  /* ── Auto-rotation ── */
+  // ── RAF loop — pure DOM updates, zero React re-renders ───────────────────
   useEffect(() => {
-    if (!autoRotate) return;
-    const id = setInterval(() => {
-      setRotationAngle((prev) => Number(((prev + 0.3) % 360).toFixed(3)));
-    }, 50);
-    return () => clearInterval(id);
-  }, [autoRotate]);
+    const tick = (ts) => {
+      // Cap delta to 100 ms so a backgrounded tab doesn't jump
+      const delta = Math.min((ts - (lastTsRef.current ?? ts)) / 1000, 0.1);
+      lastTsRef.current = ts;
 
-  const centerViewOnNode = (nodeId) => {
-    const idx = timelineData.findIndex((item) => item.id === nodeId);
-    setRotationAngle(270 - (idx / timelineData.length) * 360);
-  };
+      if (autoRotRef.current) {
+        rotationRef.current = (rotationRef.current + SPEED_DEG_PER_SEC * delta) % 360;
+      }
 
+      const total = timelineData.length;
+      const r     = radiusRef.current;
+
+      timelineData.forEach((item, i) => {
+        const el = nodeRefs.current[item.id];
+        if (!el || expandedRef.current[item.id]) return;
+
+        const angleDeg = ((i / total) * 360 + rotationRef.current) % 360;
+        const rad      = (angleDeg * Math.PI) / 180;
+        const x        = r * Math.cos(rad);
+        const y        = r * Math.sin(rad);
+        const opacity  = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(rad)) / 2)));
+        const zIndex   = Math.round(100 + 50 * Math.cos(rad));
+
+        // translate3d forces GPU compositing — no layout, no paint, just composite
+        el.style.transform = `translate3d(${x}px,${y}px,0)`;
+        el.style.opacity   = opacity;
+        el.style.zIndex    = zIndex;
+      });
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [timelineData]); // only re-start loop if data changes
+
+  // ── Interaction helpers ───────────────────────────────────────────────────
   const handleContainerClick = (e) => {
-    if (e.target === containerRef.current || e.target === orbitRef.current) {
-      setExpandedItems({});
-      setActiveNodeId(null);
-      setPulseEffect({});
-      setAutoRotate(true);
-    }
+    if (e.target !== containerRef.current) return;
+    setExpandedItems({});
+    setActiveNodeId(null);
+    setPulseEffect({});
+    autoRotRef.current = true;
   };
 
   const toggleItem = (id) => {
-    setExpandedItems((prev) => {
-      const next = Object.fromEntries(Object.keys(prev).map((k) => [k, false]));
-      next[id] = !prev[id];
+    const opening = !expandedRef.current[id];
 
-      if (!prev[id]) {
-        setActiveNodeId(id);
-        setAutoRotate(false);
-        const pulse = {};
-        getRelatedItems(id).forEach((rId) => { pulse[rId] = true; });
-        setPulseEffect(pulse);
-        centerViewOnNode(id);
-      } else {
-        setActiveNodeId(null);
-        setAutoRotate(true);
-        setPulseEffect({});
+    if (opening) {
+      const idx = timelineData.findIndex((item) => item.id === id);
+      const r   = radiusRef.current;
+
+      // Stop rotation and snap so clicked node lands at top of orbit
+      autoRotRef.current  = false;
+      rotationRef.current = (((270 - (idx / timelineData.length) * 360) % 360) + 360) % 360;
+
+      // Place node at top immediately (RAF loop skips expanded nodes)
+      const el = nodeRefs.current[id];
+      if (el) {
+        el.style.transform = `translate3d(0,${-r}px,0)`;
+        el.style.opacity   = "1";
+        el.style.zIndex    = "200";
       }
-      return next;
-    });
-  };
 
-  const calculateNodePosition = (index, total) => {
-    const angle = ((index / total) * 360 + rotationAngle) % 360;
-    const radian = (angle * Math.PI) / 180;
-    const x = radius * Math.cos(radian);
-    const y = radius * Math.sin(radian);
-    const zIndex = Math.round(100 + 50 * Math.cos(radian));
-    const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
-    return { x, y, zIndex, opacity };
-  };
+      // Pulse neighbours
+      const pulse = {};
+      const item  = timelineData.find((i) => i.id === id);
+      if (item) item.relatedIds.forEach((rId) => { pulse[rId] = true; });
 
-  const getRelatedItems = (itemId) => {
-    const item = timelineData.find((i) => i.id === itemId);
-    return item ? item.relatedIds : [];
+      setPulseEffect(pulse);
+      setActiveNodeId(id);
+      setExpandedItems({ [id]: true });
+    } else {
+      autoRotRef.current = true;
+      setActiveNodeId(null);
+      setPulseEffect({});
+      setExpandedItems({});
+    }
   };
 
   const isRelatedToActive = (itemId) => {
     if (!activeNodeId) return false;
-    return getRelatedItems(activeNodeId).includes(itemId);
+    const item = timelineData.find((i) => i.id === activeNodeId);
+    return item ? item.relatedIds.includes(itemId) : false;
   };
 
   const getStatusStyles = (status) => {
-    switch (status) {
-      case "completed":   return "text-white bg-emerald-600 border-emerald-500";
-      case "in-progress": return "text-white bg-blue-600 border-blue-500";
-      default:            return "text-white/70 bg-black/40 border-white/30";
-    }
+    if (status === "completed")   return "text-white bg-emerald-600 border-emerald-500";
+    if (status === "in-progress") return "text-white bg-blue-600 border-blue-500";
+    return "text-white/70 bg-black/40 border-white/30";
   };
 
   const orbitSize = radius * 2;
@@ -113,18 +146,13 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
     >
       <div className="relative w-full h-full flex items-center justify-center">
         <div
-          ref={orbitRef}
           className="relative flex items-center justify-center"
           style={{ width: orbitSize + 120, height: orbitSize + 120 }}
         >
           {/* Centre orb */}
-          <div className="absolute w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 via-blue-500 to-emerald-400 animate-pulse flex items-center justify-center z-10"
-            style={{ willChange: "transform" }}
-          >
+          <div className="absolute w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 via-blue-500 to-emerald-400 animate-pulse flex items-center justify-center z-10">
             <div className="absolute w-[72px] h-[72px] rounded-full border border-white/20 animate-ping opacity-70" />
-            <div className="absolute w-[88px] h-[88px] rounded-full border border-white/10 animate-ping opacity-40"
-              style={{ animationDelay: "0.5s" }}
-            />
+            <div className="absolute w-[88px] h-[88px] rounded-full border border-white/10 animate-ping opacity-40" style={{ animationDelay: "0.5s" }} />
             <div className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-md" />
           </div>
 
@@ -135,45 +163,37 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
           />
 
           {/* Nodes */}
-          {timelineData.map((item, index) => {
-            const pos = calculateNodePosition(index, timelineData.length);
-            const isExpanded = expandedItems[item.id];
-            const isRelated = isRelatedToActive(item.id);
-            const isPulsing = pulseEffect[item.id];
-            const Icon = item.icon;
+          {timelineData.map((item) => {
+            const isExpanded = !!expandedItems[item.id];
+            const isRelated  = isRelatedToActive(item.id);
+            const isPulsing  = !!pulseEffect[item.id];
+            const Icon       = item.icon;
 
             return (
               <div
                 key={item.id}
                 ref={(el) => (nodeRefs.current[item.id] = el)}
-                className="absolute transition-all duration-700 cursor-pointer"
-                style={{
-                  transform: `translate(${pos.x}px, ${pos.y}px)`,
-                  zIndex: isExpanded ? 200 : pos.zIndex,
-                  opacity: isExpanded ? 1 : pos.opacity,
-                  willChange: "transform, opacity",
-                }}
+                className="absolute cursor-pointer"
+                style={{ willChange: "transform, opacity" }}
                 onClick={(e) => { e.stopPropagation(); toggleItem(item.id); }}
               >
-                {/* Energy glow */}
+                {/* Glow ring */}
                 <div
-                  className={cn("absolute rounded-full", isPulsing && "animate-pulse")}
+                  className={cn("absolute rounded-full pointer-events-none", isPulsing && "animate-pulse")}
                   style={{
                     background: "radial-gradient(circle, rgba(52,211,153,0.18) 0%, rgba(52,211,153,0) 70%)",
-                    width: `${item.energy * 0.3 + 40}px`,
+                    width:  `${item.energy * 0.3 + 40}px`,
                     height: `${item.energy * 0.3 + 40}px`,
-                    left: `-${(item.energy * 0.3) / 2}px`,
-                    top: `-${(item.energy * 0.3) / 2}px`,
+                    left:   `-${(item.energy * 0.3) / 2}px`,
+                    top:    `-${(item.energy * 0.3) / 2}px`,
                   }}
                 />
 
-                {/* Icon */}
+                {/* Icon circle */}
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
-                  isExpanded
-                    ? "bg-emerald-400 text-black border-emerald-300 shadow-lg shadow-emerald-400/30 scale-150"
-                    : isRelated
-                    ? "bg-white/40 text-white border-white animate-pulse"
+                  isExpanded ? "bg-emerald-400 text-black border-emerald-300 shadow-lg shadow-emerald-400/30 scale-150"
+                    : isRelated ? "bg-white/40 text-white border-white animate-pulse"
                     : "bg-black text-white border-white/40",
                 )}>
                   <Icon size={16} />
@@ -191,9 +211,7 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                 {isExpanded && (
                   <Card
                     className="absolute top-20 left-1/2 -translate-x-1/2 bg-black/95 backdrop-blur-lg border-white/20 shadow-xl shadow-emerald-500/10 overflow-visible"
-                    style={{
-                      width: Math.min(240, (containerRef.current?.offsetWidth ?? 320) - 32),
-                    }}
+                    style={{ width: Math.min(240, (containerRef.current?.offsetWidth ?? 320) - 32) }}
                   >
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-px h-3 bg-white/40" />
                     <CardHeader className="pb-2 px-4 pt-4">
@@ -216,10 +234,7 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                           <span className="font-mono text-white/50">{item.energy}%</span>
                         </div>
                         <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-emerald-500 to-blue-500"
-                            style={{ width: `${item.energy}%` }}
-                          />
+                          <div className="h-full bg-gradient-to-r from-emerald-500 to-blue-500" style={{ width: `${item.energy}%` }} />
                         </div>
                       </div>
 
@@ -227,13 +242,11 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                         <div className="mt-3 pt-3 border-t border-white/10">
                           <div className="flex items-center mb-2">
                             <Link size={10} className="text-white/50 mr-1" />
-                            <h4 className="text-xs uppercase tracking-wider font-medium text-white/50">
-                              Connected Steps
-                            </h4>
+                            <h4 className="text-xs uppercase tracking-wider font-medium text-white/50">Connected Steps</h4>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {item.relatedIds.map((relatedId) => {
-                              const relatedItem = timelineData.find((i) => i.id === relatedId);
+                              const rel    = timelineData.find((i) => i.id === relatedId);
                               const isPrev = relatedId < item.id;
                               return (
                                 <Button
@@ -244,7 +257,7 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                                   onClick={(e) => { e.stopPropagation(); toggleItem(relatedId); }}
                                 >
                                   {isPrev && <ArrowLeft size={8} className="mr-1 text-white/50" />}
-                                  {relatedItem?.title}
+                                  {rel?.title}
                                   {!isPrev && <ArrowRight size={8} className="ml-1 text-white/50" />}
                                 </Button>
                               );
