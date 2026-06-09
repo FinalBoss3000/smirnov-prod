@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Send, CheckCircle } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { BlurFade } from '@/components/ui/blur-fade';
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRFVPerb5MUWeQzJiNVSb2RcFjoeWujsW7UeZ0X48ZbLy-KaVFo9gaH2P_xZIgBt2_bA/exec';
 
@@ -44,12 +44,7 @@ export default function ContactSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
           {/* Left info */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
+          <BlurFade inView>
             <p className="text-emerald-400 text-sm tracking-[0.3em] uppercase mb-3">Get in Touch</p>
             <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
               Let's Create
@@ -86,15 +81,10 @@ export default function ContactSection() {
                 <span className="font-medium tracking-wide">Message on Messenger</span>
               </a>
             </div>
-          </motion.div>
+          </BlurFade>
 
           {/* Right form */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          <BlurFade inView delay={0.15}>
             {sent ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-20">
                 <CheckCircle size={48} className="text-emerald-400 mb-4" />
@@ -166,7 +156,7 @@ export default function ContactSection() {
                 </button>
               </form>
             )}
-          </motion.div>
+          </BlurFade>
 
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Instagram, Youtube } from 'lucide-react';
+import { BlurFade } from '@/components/ui/blur-fade';
 
 const categories = [
   {
@@ -53,49 +54,41 @@ export default function VideoGallery() {
   return (
     <section id="work" className="relative py-24 md:py-32 bg-black">
       <div className="max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-16"
-        >
+        <BlurFade inView className="mb-16">
           <p className="text-emerald-400 text-sm tracking-[0.3em] uppercase mb-3">Portfolio</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">Selected Work</h2>
-        </motion.div>
+        </BlurFade>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {categories.map((cat, i) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              onClick={() => handleCategoryClick(cat)}
-              className={`group relative aspect-video rounded-2xl overflow-hidden cursor-pointer border-2 transition-all duration-300 ${activeCategory?.id === cat.id ? 'border-emerald-500/60' : 'border-white/5 hover:border-white/20'}`}
-            >
-              <img src={cat.thumbnail} alt={cat.label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between">
-                <span className="text-white font-semibold text-xl tracking-wide">{cat.label}</span>
-                {cat.icons.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    {cat.icons.map((Icon, idx) => (
-                      <div key={idx} className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                        <Icon size={16} className="text-white" />
-                      </div>
-                    ))}
-                  </div>
+            <BlurFade key={cat.id} inView delay={i * 0.1}>
+              <div
+                onClick={() => handleCategoryClick(cat)}
+                className={`group relative aspect-video rounded-2xl overflow-hidden cursor-pointer border-2 transition-all duration-300 ${activeCategory?.id === cat.id ? 'border-emerald-500/60' : 'border-white/5 hover:border-white/20'}`}
+              >
+                <img src={cat.thumbnail} alt={cat.label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between">
+                  <span className="text-white font-semibold text-xl tracking-wide">{cat.label}</span>
+                  {cat.icons.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      {cat.icons.map((Icon, idx) => (
+                        <div key={idx} className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                          <Icon size={16} className="text-white" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {activeCategory?.id === cat.id && (
+                  <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-emerald-400" />
                 )}
               </div>
-              {activeCategory?.id === cat.id && (
-                <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-emerald-400" />
-              )}
-            </motion.div>
+            </BlurFade>
           ))}
         </div>
 
+        {/* Video grid — kept as Framer Motion because it's a UI state change, not a scroll reveal */}
         <AnimatePresence mode="wait">
           {activeCategory && (
             <motion.div
@@ -146,6 +139,7 @@ export default function VideoGallery() {
         </AnimatePresence>
       </div>
 
+      {/* Modal — kept as Framer Motion (UI interaction, not scroll reveal) */}
       <AnimatePresence>
         {modalVideo && (
           <motion.div

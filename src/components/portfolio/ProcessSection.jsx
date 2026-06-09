@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { MessageSquare, Scissors, RefreshCw, PackageCheck } from 'lucide-react';
 import RadialOrbitalTimeline from '@/components/ui/radial-orbital-timeline';
+import { BlurFade } from '@/components/ui/blur-fade';
 
 const processData = [
   {
@@ -56,46 +56,29 @@ export default function ProcessSection() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-blue-500/30" />
 
       <div className="max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-4"
-        >
+        <BlurFade inView className="text-center mb-4">
           <p className="text-emerald-400 text-sm tracking-[0.3em] uppercase mb-3">Simple & Clear</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">How We Work</h2>
           <p className="mt-4 text-white/40 max-w-xl mx-auto">
             A smooth, professional process from first message to final delivery. Click any node to explore each step.
           </p>
-        </motion.div>
+        </BlurFade>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
+        <BlurFade inView delay={0.15}>
           <RadialOrbitalTimeline
             timelineData={processData}
             className="h-[460px] md:h-[580px]"
           />
-        </motion.div>
+        </BlurFade>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-0 text-center"
-        >
+        <BlurFade inView delay={0.25} className="mt-0 text-center">
           <button
             onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
             className="px-10 py-4 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-full text-white text-sm tracking-wider hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-500"
           >
             START YOUR PROJECT
           </button>
-        </motion.div>
+        </BlurFade>
       </div>
     </section>
   );

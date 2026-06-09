@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
+import { BlurFade } from '@/components/ui/blur-fade';
 
 const faqs = [
   {
@@ -37,67 +38,50 @@ export default function FaqSection() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-blue-500/30" />
 
       <div className="max-w-3xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
+        <BlurFade inView className="text-center mb-16">
           <p className="text-emerald-400 text-sm tracking-[0.3em] uppercase mb-3">Got Questions?</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">FAQ</h2>
           <p className="mt-4 text-white/40 max-w-xl mx-auto">
             Everything you need to know before reaching out.
           </p>
-        </motion.div>
+        </BlurFade>
 
         <div className="space-y-3">
           {faqs.map((faq, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden"
-            >
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between px-6 py-5 text-left group"
-              >
-                <span className={`font-medium text-sm md:text-base transition-colors duration-300 ${open === i ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
-                  {faq.q}
-                </span>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center border flex-shrink-0 ml-4 transition-all duration-300 ${open === i ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'border-white/10 text-white/30'}`}>
-                  {open === i ? <Minus size={14} /> : <Plus size={14} />}
-                </div>
-              </button>
+            <BlurFade key={i} inView delay={i * 0.07}>
+              <div className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
+                <button
+                  onClick={() => setOpen(open === i ? null : i)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left group"
+                >
+                  <span className={`font-medium text-sm md:text-base transition-colors duration-300 ${open === i ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
+                    {faq.q}
+                  </span>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center border flex-shrink-0 ml-4 transition-all duration-300 ${open === i ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'border-white/10 text-white/30'}`}>
+                    {open === i ? <Minus size={14} /> : <Plus size={14} />}
+                  </div>
+                </button>
 
-              <AnimatePresence initial={false}>
-                {open === i && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    <div className="px-6 pb-5 text-white/40 text-sm leading-relaxed border-t border-white/5 pt-4">
-                      {faq.a}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+                <AnimatePresence initial={false}>
+                  {open === i && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <div className="px-6 pb-5 text-white/40 text-sm leading-relaxed border-t border-white/5 pt-4">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </BlurFade>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12 p-6 rounded-2xl border border-white/8 bg-white/[0.02] text-center"
-        >
+        <BlurFade inView delay={0.35} className="mt-12 p-6 rounded-2xl border border-white/8 bg-white/[0.02] text-center">
           <p className="text-white/50 text-sm">Still have a question?</p>
           <button
             onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
@@ -105,7 +89,7 @@ export default function FaqSection() {
           >
             SEND ME A MESSAGE →
           </button>
-        </motion.div>
+        </BlurFade>
       </div>
     </section>
   );
