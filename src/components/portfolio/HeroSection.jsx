@@ -24,7 +24,7 @@ export default function HeroSection() {
           <img
             src={LOGO_URL}
             alt="Smirnov Prod."
-            className="w-24 h-24 md:w-32 md:h-32 mx-auto object-contain mix-blend-screen mb-6"
+            className="w-24 h-24 md:w-32 md:h-32 mx-auto object-cover rounded-full mb-6"
           />
         </motion.div>
 
