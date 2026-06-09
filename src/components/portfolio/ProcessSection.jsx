@@ -13,7 +13,7 @@ const processData = [
     icon: MessageSquare,
     relatedIds: [2],
     status: "completed",
-    energy: 100,
+    energy: 25,
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ const processData = [
     icon: Scissors,
     relatedIds: [1, 3],
     status: "in-progress",
-    energy: 75,
+    energy: 50,
   },
   {
     id: 3,
@@ -35,7 +35,7 @@ const processData = [
     icon: RefreshCw,
     relatedIds: [2, 4],
     status: "pending",
-    energy: 45,
+    energy: 75,
   },
   {
     id: 4,
@@ -46,7 +46,7 @@ const processData = [
     icon: PackageCheck,
     relatedIds: [3],
     status: "pending",
-    energy: 20,
+    energy: 100,
   },
 ];
 

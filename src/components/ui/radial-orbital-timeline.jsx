@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Link, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Link, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -190,7 +190,7 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                       <div className="mt-4 pt-3 border-t border-white/10">
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="flex items-center text-white/50">
-                            <Zap size={10} className="mr-1" /> Progress
+                            <Zap size={10} className="mr-1" /> Stage Progress
                           </span>
                           <span className="font-mono text-white/50">{item.energy}%</span>
                         </div>
@@ -213,6 +213,7 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                           <div className="flex flex-wrap gap-1">
                             {item.relatedIds.map((relatedId) => {
                               const relatedItem = timelineData.find((i) => i.id === relatedId);
+                              const isPrev = relatedId < item.id;
                               return (
                                 <Button
                                   key={relatedId}
@@ -221,8 +222,9 @@ export default function RadialOrbitalTimeline({ timelineData, className }) {
                                   className="flex items-center h-6 px-2 py-0 text-xs rounded-none border-white/20 bg-transparent hover:bg-white/10 text-white/70 hover:text-white transition-all"
                                   onClick={(e) => { e.stopPropagation(); toggleItem(relatedId); }}
                                 >
+                                  {isPrev && <ArrowLeft size={8} className="mr-1 text-white/50" />}
                                   {relatedItem?.title}
-                                  <ArrowRight size={8} className="ml-1 text-white/50" />
+                                  {!isPrev && <ArrowRight size={8} className="ml-1 text-white/50" />}
                                 </Button>
                               );
                             })}
